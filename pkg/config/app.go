@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/joho/godotenv"
+	"log"
 	"os"
 )
 
@@ -12,16 +14,22 @@ var (
 )
 
 func Connect() {
-	dbUser := os.Getenv("USERNAME")
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+
+	dbUser := os.Getenv("DBUSER")
 	dbPass := os.Getenv("PASSWORD")
 	dbName := os.Getenv("DATABASE")
 
-	dsn := fmt.Sprintf("%s:%s/%s?charset=utf8&parseTime=True&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/%s?charset=utf8&parseTime=True&loc=Local",
 		dbUser, dbPass, dbName)
 
-	d, err := gorm.Open("mssql", dsn)
+	d, err := gorm.Open("mysql", dsn)
 	if err != nil {
-		panic("failed to connect database")
+		panic(fmt.Sprintf("failed to connect database: %v", err))
 	}
 	db = d
 }
